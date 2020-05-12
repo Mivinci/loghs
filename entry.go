@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
+	"strconv"
 	"sync"
+	"time"
 )
 
 var entryPool = &sync.Pool{
@@ -21,19 +24,6 @@ func putEntry(e *Entry) {
 		return
 	}
 	entryPool.Put(e)
-}
-
-// caller .
-type caller struct {
-	pc      uintptr
-	file    string
-	line    int
-	defined bool
-}
-
-// newCaller new a caller
-func newCaller(pc uintptr, file string, line int, ok bool) caller {
-	return caller{pc, file, line, ok}
 }
 
 // Entry is header of a log
@@ -61,7 +51,8 @@ func (e *Entry) Msg(msg string) {
 
 func (e *Entry) msg(msg string) {
 	if msg != "" {
-		enc.AppendString(&e.buf, msg)
+		enc.Space(&e.buf)
+		enc.String(&e.buf, msg)
 	}
 
 	if err := e.write(); err != nil {
@@ -78,4 +69,42 @@ func (e *Entry) write() (err error) {
 	}
 	putEntry(e)
 	return
+}
+
+// Caller sends file:line of the caller to the writer
+func (e *Entry) Caller(skip int) *Entry {
+	if e == nil {
+		return e
+	}
+	return e.caller(skip)
+}
+
+func (e *Entry) caller(skip int) *Entry {
+	_, file, line, ok := runtime.Caller(skip)
+	if !ok {
+		return e
+	}
+	enc.Space(&e.buf)
+	enc.String(&e.buf, file+":"+strconv.Itoa(line))
+	return e
+}
+
+// Time sends formated time to writer
+func (e *Entry) Time(format string) *Entry {
+	if e == nil {
+		return e
+	}
+	enc.Space(&e.buf)
+	enc.Time(&e.buf, time.Now(), format)
+	return e
+}
+
+// TimeUnix sends timestamp to writer
+func (e *Entry) TimeUnix() *Entry {
+	if e == nil {
+		return e
+	}
+	enc.Space(&e.buf)
+	enc.TimeUnix(&e.buf, time.Now())
+	return e
 }

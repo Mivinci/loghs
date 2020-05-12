@@ -2,38 +2,51 @@ package loghs
 
 import (
 	"io"
-)
-
-// Flags
-const (
-	Color int8 = 1 << iota
-	Caller
-
-	Std = Color | Caller
+	"io/ioutil"
 )
 
 // Time formats
 const (
-	timeFormat      = "2006/01/02 15:04:05"
-	timeMicroFormat = "2006/01/02 15:04:05.999999"
+	CallerSkip      = 2
+	TimeFormat      = "2006/01/02 15:04:05"
+	TimeMicroFormat = "2006/01/02 15:04:05.999999"
 )
 
 // Logger is log handler
 type Logger struct {
 	out   io.Writer
 	level Level
+	entry *Entry
 }
 
 // New creates a logger with given output writer
 func New(w io.Writer) Logger {
-	return Logger{out: w}
-}
-
-// Info sends a info level log to writer
-func (l *Logger) Info(msg string) {
-	l.newEntry(InfoLevel).Msg(msg)
+	if w == nil {
+		w = ioutil.Discard
+	}
+	return Logger{out: w, level: NoLevel}
 }
 
 func (l *Logger) newEntry(level Level) *Entry {
-	return newEntry(l.out, level)
+	e := newEntry(l.out, level)
+	l.entry = e
+	if level != NoLevel {
+		enc.String(&e.buf, level.String())
+	}
+	return e
+}
+
+// Log sends a log with no level
+func (l Logger) Log() *Entry {
+	return l.newEntry(NoLevel)
+}
+
+// With returns entry
+func (l Logger) With() *Entry {
+	return l.entry
+}
+
+// Info sends a info level log to writer
+func (l *Logger) Info() *Entry {
+	return l.newEntry(InfoLevel)
 }

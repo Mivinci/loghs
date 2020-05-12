@@ -7,7 +7,8 @@ type Level int8
 
 // Log levels
 const (
-	DebugLevel Level = 1 + iota
+	NoLevel Level = iota
+	DebugLevel
 	InfoLevel
 	WarnLevel
 	ErrorLevel

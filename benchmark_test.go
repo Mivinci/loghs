@@ -4,6 +4,10 @@ import (
 	"testing"
 )
 
+const (
+	fakeMessage = "Test logging, but use a somewhat realistic message length."
+)
+
 type nopOutput struct{}
 
 func (w *nopOutput) Write(b []byte) (n int, err error) {
@@ -18,9 +22,20 @@ func (w *nopOutput) IsNop() bool {
 
 func BenchmarkInfo(b *testing.B) {
 	log := New(&nopOutput{})
-	b.ReportAllocs()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		log.Info("hhh")
-	}
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			log.Info().Msg(fakeMessage)
+		}
+	})
+}
+
+func BenchmarkLogEmpty(b *testing.B) {
+	log := New(nil)
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			log.Log().Msg(fakeMessage)
+		}
+	})
 }
