@@ -1,7 +1,6 @@
 package loghs
 
-import "github.com/mivinci/loghs/encoding/text"
-
-var (
-	enc = text.Encoder{}
-)
+// Encoder abstruct
+type Encoder interface {
+	String([]byte, string) []byte
+}
