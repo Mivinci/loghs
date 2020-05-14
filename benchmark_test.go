@@ -1,8 +1,8 @@
 package loghs
 
 import (
-	"io"
-	"os"
+	"io/ioutil"
+	"log"
 	"testing"
 )
 
@@ -10,49 +10,33 @@ const (
 	fakeMessage = "Test logging, but use a somewhat realistic message length."
 )
 
-type nopOutput struct{}
-
-func (w *nopOutput) Write(b []byte) (n int, err error) {
-	// return the actual length in order to `AddPrinter(...)` to be work with io.MultiWriter
-	return len(b), nil
-}
-
-// IsNop defines this wrriter as a nop writer.
-func (w *nopOutput) IsNop() bool {
-	return true
-}
-
-type noRender struct{}
-
-func (r *noRender) Render(out io.Writer, fields []Field) {}
-
-func BenchmarkFieldLog(b *testing.B) {
-	r = &noRender{}
-	log := New(os.Stdout)
+func BenchmarkEmpty(b *testing.B) {
+	logger := New(ioutil.Discard)
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			log.Info("")
+			logger.Log().Message(fakeMessage)
 		}
 	})
 }
 
-// func BenchmarkInfo(b *testing.B) {
-// 	log := New(&nopOutput{})
-// 	b.ResetTimer()
-// 	b.RunParallel(func(pb *testing.PB) {
-// 		for pb.Next() {
-// 			log.Info().Msg(fakeMessage)
-// 		}
-// 	})
-// }
+func BenchmarkInfoTime(b *testing.B) {
+	logger := New(ioutil.Discard)
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			logger.Info().Time("").Message(fakeMessage)
+		}
+	})
+}
 
-// func BenchmarkLogEmpty(b *testing.B) {
-// 	log := New(nil)
-// 	b.ResetTimer()
-// 	b.RunParallel(func(pb *testing.PB) {
-// 		for pb.Next() {
-// 			log.Log().Msg(fakeMessage)
-// 		}
-// 	})
-// }
+func BenchmarkStdLogInfoTime(b *testing.B) {
+	// r = &noRender{}
+	logger := log.New(ioutil.Discard, "INFO ", log.LstdFlags)
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			logger.Printf(fakeMessage)
+		}
+	})
+}

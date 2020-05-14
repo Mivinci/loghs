@@ -7,26 +7,42 @@ const (
 	_message = "message"
 )
 
-var (
-	r Render
-)
-
 // Logger logger
 type Logger struct {
-	out   io.Writer
-	level Level
+	out io.Writer
 }
 
 // New new
 func New(w io.Writer) Logger {
-	return Logger{out: w, level: NoLevel}
+	return Logger{out: w}
 }
 
-func (l *Logger) output(level Level, message string, fields ...Field) {
-	r.Render(l.out, append(fields, String(_level, level.String()), String(_message, message)))
+// Log non-level log
+func (l *Logger) Log() *Entry {
+	return newEntry(l.out, NoLevel)
 }
 
 // Info info
-func (l *Logger) Info(message string, fields ...Field) {
-	l.output(InfoLevel, message, fields...)
+func (l *Logger) Info() *Entry {
+	return newEntry(l.out, InfoLevel)
+}
+
+// Debug debug
+func (l *Logger) Debug() *Entry {
+	return newEntry(l.out, DebugLevel)
+}
+
+// Warn warn
+func (l *Logger) Warn() *Entry {
+	return newEntry(l.out, WarnLevel)
+}
+
+// Error error
+func (l *Logger) Error() *Entry {
+	return newEntry(l.out, ErrorLevel)
+}
+
+// Fatal fatal
+func (l *Logger) Fatal() *Entry {
+	return newEntry(l.out, FatalLevel)
 }
