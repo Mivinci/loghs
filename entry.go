@@ -80,3 +80,15 @@ func (e *Entry) Caller(depth int) *Entry {
 	e.buf = enc.Suffix(e.buf, file+":"+strconv.Itoa(line))
 	return e
 }
+
+// String string
+func (e *Entry) String(s string) *Entry {
+	e.buf = enc.Suffix(e.buf, s)
+	return e
+}
+
+// Int64 int64
+func (e *Entry) Int64(i int64) *Entry {
+	e.buf = enc.Int64(e.buf, i)
+	return e
+}
