@@ -111,6 +111,11 @@ func (f *File) open() error {
 	return nil
 }
 
+// Close closes
+func (f *File) Close() error {
+	return f.close()
+}
+
 func (f *File) close() error {
 	if f.file == nil {
 		return nil
